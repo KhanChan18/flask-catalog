@@ -10,7 +10,7 @@ def home():
     return "Welcome to the Catalog Home."
 
 @catalog.route('/product/<id>')
-def product():
+def product(id):
     product = Product.query.get_or_404(id)
     return 'Product - %s, $%s' % (product.name, product.price)
 

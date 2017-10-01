@@ -4,6 +4,19 @@ from flask_wtf import FlaskForm
 from wtforms import TextField, DecimalField, SelectField
 from wtforms.validators import InputRequired, NumberRange
 
+class CategoryField(SelectField):
+    def iter_choices(self):
+        categories = [(c.id, c.name) for c in Category.query.all()]
+        for value, label in categories:
+            yield (value, label, self.coerce(value) == self.data)
+
+    def pre_validate(self, form):
+        for v, _ in [(c.id, c.name) for c in Category.query.all()]:
+            if self.data == v:
+                break
+        else:
+            raise ValueError(self.gettext('Not a valid choice'))
+
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(254))
@@ -38,7 +51,7 @@ class ProductForm(NameForm):
     price = DecimalField('Price', validators=[
         InputRequired(), NumberRange(min=Decimal('0.0'))
     ])
-    category = SelectField('Category', validators=[InputRequired()], coerce=int)
+    category = CategoryField('Category', validators=[InputRequired()], coerce=int)
 
 class CategoryForm(NameForm):
     pass

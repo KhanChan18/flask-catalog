@@ -69,7 +69,7 @@ def create_product():
 
         if image and allow_files(image.filename):
             filename = secure_filename(image.filename)
-            image.save(os.path.join(app.config['UPLOAD_FOLDER']), filename)
+            image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
         product = Product(name, price, category, filename)
         db.session.add(product)

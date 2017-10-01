@@ -8,6 +8,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////' + os.path.join(basedir, 'data.sqlite')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.secret_key = 'GNU is Not Unix'
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 

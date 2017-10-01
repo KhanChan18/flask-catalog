@@ -2,6 +2,7 @@ from flask import request, jsonify, Blueprint, render_template
 from my_app import app, db
 from my_app.catalog.models import Product, Category
 from functools import wraps
+from flask import flash
 
 catalog = Blueprint('catalog', __name__)
 
@@ -52,18 +53,19 @@ def products(page=1):
 
 @catalog.route('/product-create', methods=['POST',])
 def create_product():
-    name = request.form.get('name')
-    price = request.form.get('price')
-    categ_name = request.form.get('category')
-    category = Category.query.filter_by(name=categ_name).first()
-
-    if not category:
-        category = Category(categ_name)
-
-    product = Product(name, price, category)
-    db.session.add(product)
-    db.session.commit()
-    return render_template('product.html', product=product)
+    if request.method == 'POST':
+        name = request.form.get('name')
+        price = request.form.get('price')
+        categ_name = request.form.get('category')
+        category = Category.query.filter_by(name=categ_name).first()
+        if not category:
+            category = Category(categ_name)
+        product = Product(name, price, category)
+        db.session.add(product)
+        db.session.commit()
+        flash('The product %s has been created' % name, 'success')
+        return redirect(url_for('catalog.product', id=product.id))
+    return render_template('product-create.html', product=product)
 
 @catalog.route('/category-create', methods=['POST',])
 def create_category():

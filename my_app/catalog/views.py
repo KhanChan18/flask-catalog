@@ -75,7 +75,7 @@ def create_product():
 
     return render_template('product-create.html', form=form)
 
-@catalog.route('/category-create', methods=['POST',])
+@catalog.route('/category-create', methods=['GET','POST'])
 def create_category():
     form = CategoryForm(request.form, csrf_enabled=False)
 

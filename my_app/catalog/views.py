@@ -6,9 +6,8 @@ from functools import wraps
 catalog = Blueprint('catalog', __name__)
 
 def template_or_json(template=None):
-    """
-    Return a dict from your view and this will either pass it to a template or
-    render json. Use like:
+    """"Return a dict from your view and this will either
+    pass it to a template or render json. Use like:
 
     @template_or_json('template.html')
     """
@@ -20,8 +19,8 @@ def template_or_json(template=None):
                 return jsonify(ctx)
             else:
                 return render_template(template, **ctx)
-            return decorated_fn
-        return decorated
+        return decorated_fn
+    return decorated
 
 @catalog.route('/')
 @catalog.route('/home')
@@ -99,6 +98,6 @@ def categories():
     '''
     return render_template('categories.html', categories=categories)
 
-@catalog.errorhandler(404)
+@app.errorhandler(404)
 def page_not_found():
     return render_template('404.html'), 404

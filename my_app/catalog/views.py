@@ -1,4 +1,4 @@
-from flask import request, jsonify, Blueprint
+from flask import request, jsonify, Blueprint, render_template
 from my_app import app, db
 from my_app.catalog.models import Product, Category
 
@@ -7,17 +7,18 @@ catalog = Blueprint('catalog', __name__)
 @catalog.route('/')
 @catalog.route('/home')
 def home():
-    return "Welcome to the Catalog Home."
+    return render_template('home.html')
 
 @catalog.route('/product/<id>')
 def product(id):
     product = Product.query.get_or_404(id)
-    return 'Product - %s, $%s' % (product.name, product.price)
+    return render_template('product.html', product=product)
 
 @catalog.route('/products')
 @catalog.route('/products/<int:page>')
 def products(page=1):
-    products = Product.query.paginate(page, 2).items
+    products = Product.query.paginate(page, 3)
+    '''
     res = {}
     for product in products:
         res[product.id] = {
@@ -26,6 +27,8 @@ def products(page=1):
             'category': product.category.name
         }
     return jsonify(res)
+    '''
+    return render_template('products.html', products=products)
 
 @catalog.route('/product-create', methods=['POST',])
 def create_product():
@@ -40,7 +43,7 @@ def create_product():
     product = Product(name, price, category)
     db.session.add(product)
     db.session.commit()
-    return 'Product created.'
+    return render_template('product.html', product=product)
 
 @catalog.route('/categories')
 def categories():

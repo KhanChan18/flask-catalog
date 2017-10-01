@@ -5,7 +5,7 @@ from my_app.catalog.models import Product, Category
 from functools import wraps
 from flask import flash
 from sqlalchemy.orm.util import join
-from my_app.catalog.models import ProductForm
+from my_app.catalog.models import ProductForm, CategoryForm
 
 catalog = Blueprint('catalog', __name__)
 
@@ -77,11 +77,20 @@ def create_product():
 
 @catalog.route('/category-create', methods=['POST',])
 def create_category():
-    name = request.form.get('name')
-    category = Category(name)
-    db.session.add(category)
-    db.session.commit()
-    return render_template('category.html', category=category)
+    form = CategoryForm(request.form, csrf_enabled=False)
+
+    if form.validate_on_submit():
+        name = request.form.get('name')
+        category = Category(name)
+        db.session.add(category)
+        db.session.commit()
+        flash('A new category named %s has been created' % name, 'success')
+        return redirect(url_for('catalog.category', id=category.id))
+
+    if form.errors:
+        flash("Some messages you type in need to be fixed.", 'danger')
+
+    return render_template('category-create.html', form=form)
 
 @catalog.route('/category/<id>')
 def category(id):

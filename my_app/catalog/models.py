@@ -13,6 +13,7 @@ class Product(db.Model):
         self.name = name
         self.price = price
         self.category = category
+        self.company = company
 
     def __repr__(self):
         return '<Product %d>' % self.id

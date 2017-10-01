@@ -132,13 +132,15 @@ def product_admin_submit():
     if request.method == 'POST':
         name = request.form.get('name')
         price = request.form.get('price')
-        category = Category.query.get_or_404(request.form.get('category'))
+        categ_name = request.form.get('category')
+        category = Category.query.filter_by(name=categ_name).first()
+        if not category:
+            category = Category(categ_name)
         product = Product(name, price, category)
         db.session.add(product)
         db.session.commit()
-        flash('The product %s has been created' % name, 'success')
-        return redirect(url_for('catalog.product', id=product.id))
-    return render_template('product-create.html', form=form)
+    else:
+        return render_template('404.html')
 
 @app.errorhandler(404)
 def page_not_found(e):

@@ -15,7 +15,8 @@ def product(id):
     return 'Product - %s, $%s' % (product.name, product.price)
 
 @catalog.route('/products')
-def products():
+@catalog.route('/products/<int:page>')
+def products(page=1):
     products = Product.query.paginate(page, 10).items
     res = {}
     for product in products:

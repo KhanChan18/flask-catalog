@@ -60,12 +60,11 @@ def create_product():
     categories = [(c.id, c.name) for c in Category.query.all()]
     form.category.choices = categories
 
-    if request.method == 'POST':
+    if request.method == 'POST' and form.validate():
         name = request.form.get('name')
         price = request.form.get('price')
-        company = request.form.get('company')
         category = Category.query.get_or_404(request.form.get('category'))
-        product = Product(name, price, category, company)
+        product = Product(name, price, category)
         db.session.add(product)
         db.session.commit()
         flash('The product %s has been created' % name, 'success')

@@ -55,20 +55,21 @@ def products(page=1):
 
 @catalog.route('/product-create', methods=['GET','POST'])
 def create_product():
+    form = ProductForm(request.form, csrf_enabled=False)
+    categories = [(c.id, c.name) for c in Category.query.all()]
+    form.category.choices = categories
+
     if request.method == 'POST':
         name = request.form.get('name')
         price = request.form.get('price')
-        categ_name = request.form.get('category')
         company = request.form.get('company')
-        category = Category.query.filter_by(name=categ_name).first()
-        if not category:
-            category = Category(categ_name)
+        category = Category.query.get_or_404(request.form.get('category'))
         product = Product(name, price, category, company)
         db.session.add(product)
         db.session.commit()
         flash('The product %s has been created' % name, 'success')
         return redirect(url_for('catalog.product', id=product.id))
-    return render_template('product-create.html')
+    return render_template('product-create.html', form=form)
 
 @catalog.route('/category-create', methods=['POST',])
 def create_category():

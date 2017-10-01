@@ -7,7 +7,7 @@ class Product(db.Model):
     category = db.relationship('Category', backref=db.backref('products', lazy='dynamic'))
     catagory_id = db.Column(db.Integer, db.ForeignKey('category.id'))
     ##Add-on field
-    ##company = db.Column(db.String(100))
+    company = db.Column(db.String(100))
 
     def __init__(self, name, price, category):
         self.name = name

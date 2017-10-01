@@ -2,7 +2,17 @@ from my_app import db
 from decimal import Decimal
 from flask_wtf import FlaskForm
 from wtforms import TextField, DecimalField, SelectField
-from wtforms.validators import InputRequired, NumberRange
+from wtforms.validators import InputRequired, NumberRange, ValidationError
+
+def check_duplicate_category(case_sensitive=True):
+    def _check_duplicate(form, field):
+        if case_sensitive:
+            res = Category.query.filter(Category.name.like('%'+field.data+'%')).first()
+        else:
+            res = Category.query.filter(Category.name.ilike('%'+field.data+'%')).first()
+        if res:
+            raise ValidationError('Category named %s already exists' % field.data)
+    return _check_duplicate
 
 class CategoryField(SelectField):
     def iter_choices(self):
@@ -54,4 +64,4 @@ class ProductForm(NameForm):
     category = CategoryField('Category', validators=[InputRequired()], coerce=int)
 
 class CategoryForm(NameForm):
-    pass
+    name = TextField('Name', validator=[InputRequired(), check_duplicate_category()])

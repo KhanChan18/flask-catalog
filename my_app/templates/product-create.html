@@ -2,18 +2,11 @@
 
 {% block container %}
   <div class="top-pad">
-    <form method="POST" action="{{ url_for('catalog.create_product') }}" role="form">
+    <form method="POST" action="{{ url_for('catalog.create_product') }}" role="form" enctype="multipart/form-data">
       <div class="form-group">{{ form.name.label }}: {{ form.name() }}</div>
       <div class="form-group">{{ form.price.label }}: {{ form.price() }}</div>
       <div class="form-group">{{ form.category.label }}: {{ form.category() }}</div>
-      <form method="POST"
-          action="{{ url_for('create_product') }}"
-          role="form"
-          enctype="multipart/form-data">
-      <!-- The other field definitions as always -->
-      <div class="form-group">
-        {{ form.image.label }}: {{ form.image(style='display:inline;')}}
-      </div>
+      <div class="form-group">{{ form.image.label }}: {{ form.image(style='display:inline;')}}</div>
       <button type="submit" class="btn btn-default">Submit!</button>
     </form>
   </div>

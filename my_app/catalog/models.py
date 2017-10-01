@@ -3,6 +3,7 @@ from decimal import Decimal
 from flask_wtf import FlaskForm
 from wtforms import TextField, DecimalField, SelectField
 from wtforms.validators import InputRequired, NumberRange, ValidationError
+from wtforms.widgets import html_params, Select, HTMLString
 
 def check_duplicate_category(case_sensitive=True):
     def _check_duplicate(form, field):
@@ -14,7 +15,23 @@ def check_duplicate_category(case_sensitive=True):
             raise ValidationError('Category named %s already exists' % field.data)
     return _check_duplicate
 
+class CustomerCategoryInput(Select):
+    def __call__(self, field, **kwargs):
+        kwargs.setdefault('id', field.id)
+        html = []
+        for val, label, selected in field.iter_choices():
+            html.append(
+                '<input type="radio" %s> %s' % (
+                    html_params(
+                        name=field.name, value=val, checked=selected, **kwargs
+                    ), label
+                )
+            )
+        return HTMLString(' '.join(html))
+
 class CategoryField(SelectField):
+    widgets = CustomerCategoryInput()
+    
     def iter_choices(self):
         categories = [(c.id, c.name) for c in Category.query.all()]
         for value, label in categories:

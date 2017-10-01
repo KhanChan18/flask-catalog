@@ -139,6 +139,7 @@ def product_admin_submit():
         product = Product(name, price, category)
         db.session.add(product)
         db.session.commit()
+        return "Product has been submitted by admin"
     else:
         return render_template('404.html')
 

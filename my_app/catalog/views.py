@@ -59,10 +59,11 @@ def create_product():
         name = request.form.get('name')
         price = request.form.get('price')
         categ_name = request.form.get('category')
+        company = request.form.get('company')
         category = Category.query.filter_by(name=categ_name).first()
         if not category:
             category = Category(categ_name)
-        product = Product(name, price, category)
+        product = Product(name, price, category, company)
         db.session.add(product)
         db.session.commit()
         flash('The product %s has been created' % name, 'success')

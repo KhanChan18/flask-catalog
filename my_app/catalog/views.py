@@ -45,9 +45,23 @@ def create_product():
     db.session.commit()
     return render_template('product.html', product=product)
 
+@catalog.route('/category-create', methods=['POST',])
+def create_category():
+    name = request.form.get('name')
+    category = Category(name)
+    db.session.add(category)
+    db.session.commit()
+    return render_template('category.html', category=category)
+
+@catalog.route('/category/<id>')
+def category(id):
+    category = Category.query.get_or_404(id)
+    return render_template('category.html', category=category)
+
 @catalog.route('/categories')
 def categories():
     categories = Category.query.all()
+    '''
     res = {}
     for category in categories:
         res[category.id] = {
@@ -61,3 +75,5 @@ def categories():
                 'price': product.price
             }
     return jsonify(res)
+    '''
+    return render_template('categories.html', categories=categories)

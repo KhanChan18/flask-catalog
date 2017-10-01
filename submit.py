@@ -5,7 +5,6 @@ def makeDict(counter):
     res['name'] = 'Product No.%s' % counter
     res['price'] = '%s' % (0.67*(counter-0.43)**3)
     res['category'] = 'Category No.%s' % (counter % 5)
-    res['company'] = 'Company No.%s' % (counter % 3)
     return res
 
 

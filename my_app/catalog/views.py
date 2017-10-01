@@ -1,4 +1,5 @@
-from flask import request, jsonify, Blueprint, render_template
+from flask import request, jsonify, Blueprint, render_template, redirect, flash, \
+                    url_for
 from my_app import app, db
 from my_app.catalog.models import Product, Category
 from functools import wraps
@@ -51,7 +52,7 @@ def products(page=1):
     '''
     return render_template('products.html', products=products)
 
-@catalog.route('/product-create', methods=['POST',])
+@catalog.route('/product-create', methods=['GET','POST'])
 def create_product():
     if request.method == 'POST':
         name = request.form.get('name')
@@ -65,7 +66,7 @@ def create_product():
         db.session.commit()
         flash('The product %s has been created' % name, 'success')
         return redirect(url_for('catalog.product', id=product.id))
-    return render_template('product-create.html', product=product)
+    return render_template('product-create.html')
 
 @catalog.route('/category-create', methods=['POST',])
 def create_category():

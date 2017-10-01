@@ -9,7 +9,6 @@ def makeDict(counter):
 
 
 if __name__=="__main__":
-
     target = "http://localhost:5000/product-create"
     for i in range(30):
-        post(target, makeDict(i)
+        post(target, makeDict(i))

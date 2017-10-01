@@ -7,7 +7,6 @@ def makeDict(counter):
     res['category'] = 'Category No.%s' % (counter % 5)
     return res
 
-
 if __name__=="__main__":
     target = "http://localhost:5000/product-create"
     for i in range(30):

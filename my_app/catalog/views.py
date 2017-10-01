@@ -127,6 +127,19 @@ def product_search(page=1):
                 Category.name.like('%' + category + '%'))
     return render_template('products.html', products=products.paginate(page, 10))
 
+@catalog.route('/product-admin-submit', methods=['GET','POST'])
+def product_admin_submit():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        price = request.form.get('price')
+        category = Category.query.get_or_404(request.form.get('category'))
+        product = Product(name, price, category)
+        db.session.add(product)
+        db.session.commit()
+        flash('The product %s has been created' % name, 'success')
+        return redirect(url_for('catalog.product', id=product.id))
+    return render_template('product-create.html', form=form)
+
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404

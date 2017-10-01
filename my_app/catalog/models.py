@@ -9,7 +9,7 @@ class Product(db.Model):
     ##Add-on field
     company = db.Column(db.String(100))
 
-    def __init__(self, name, price, category):
+    def __init__(self, name, price, category, company):
         self.name = name
         self.price = price
         self.category = category

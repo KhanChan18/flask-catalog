@@ -4,6 +4,7 @@ from my_app import app, db
 from my_app.catalog.models import Product, Category
 from functools import wraps
 from flask import flash
+from sqlalchemy.orm.util import join
 
 catalog = Blueprint('catalog', __name__)
 
@@ -100,6 +101,25 @@ def categories():
     return jsonify(res)
     '''
     return render_template('categories.html', categories=categories)
+
+@catalog.route('/product-search')
+@catalog.route('/product-search/<int:page>')
+def product_search(page=1):
+    name = request.args.get('name')
+    price = request.args.get('price')
+    company = request.args.get('company')
+    category = request.args.get('category')
+    products = Product.query
+    if name:
+        products = products.filter(Product.name.like('%' + name + '%'))
+    if price:
+        products = products.filter(Product.price == price)
+    if company:
+        products = products.filter(Product.company.like('%' + company + '%'))
+    if category:
+        products = products.select_from(join(Product, Category)).filter(
+                Category.name.like('%' + category + '%'))
+    return render_template('products.html', products=products.paginate(page, 10))
 
 @app.errorhandler(404)
 def page_not_found(e):

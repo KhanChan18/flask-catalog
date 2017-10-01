@@ -64,4 +64,4 @@ class ProductForm(NameForm):
     category = CategoryField('Category', validators=[InputRequired()], coerce=int)
 
 class CategoryForm(NameForm):
-    name = TextField('Name', validator=[InputRequired(), check_duplicate_category()])
+    name = TextField('Name', validators=[InputRequired(), check_duplicate_category()])

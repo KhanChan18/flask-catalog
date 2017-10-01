@@ -1,7 +1,7 @@
 from my_app import db
 from decimal import Decimal
 from flask_wtf import FlaskForm
-from wtforms import TextField, DecimalField, SelectField
+from wtforms import TextField, DecimalField, SelectField, FileField
 from wtforms.validators import InputRequired, NumberRange, ValidationError
 from wtforms.widgets import html_params, Select, HTMLString
 
@@ -15,6 +15,7 @@ def check_duplicate_category(case_sensitive=True):
             raise ValidationError('Category named %s already exists' % field.data)
     return _check_duplicate
 
+'''
 class CustomerCategoryInput(Select):
     def __call__(self, field, **kwargs):
         kwargs.setdefault('id', field.id)
@@ -22,16 +23,15 @@ class CustomerCategoryInput(Select):
         for val, label, selected in field.iter_choices():
             html.append(
                 '<input type="radio" %s> %s' % (
-                    html_params(
-                        name=field.name, value=val, checked=selected, **kwargs
-                    ), label
+                    html_params(name=field.name, value=val,checked=selected, **kwargs), label
+                    )
                 )
-            )
         return HTMLString(' '.join(html))
+'''
 
 class CategoryField(SelectField):
-    widgets = CustomerCategoryInput()
-    
+    '''widgets = CustomerCategoryInput()'''
+
     def iter_choices(self):
         categories = [(c.id, c.name) for c in Category.query.all()]
         for value, label in categories:
@@ -50,13 +50,15 @@ class Product(db.Model):
     price = db.Column(db.Float)
     category = db.relationship('Category', backref=db.backref('products', lazy='dynamic'))
     catagory_id = db.Column(db.Integer, db.ForeignKey('category.id'))
+    image_path = db.Column(db.String(255))
     ##Add-on field
     ## company = db.Column(db.String(100))
 
-    def __init__(self, name, price, category):
+    def __init__(self, name, price, category, image_path):
         self.name = name
         self.price = price
         self.category = category
+        self.image_path = image_path
 
     def __repr__(self):
         return '<Product %d>' % self.id
@@ -79,6 +81,7 @@ class ProductForm(NameForm):
         InputRequired(), NumberRange(min=Decimal('0.0'))
     ])
     category = CategoryField('Category', validators=[InputRequired()], coerce=int)
+    image = FileField('Product Image')
 
 class CategoryForm(NameForm):
     name = TextField('Name', validators=[InputRequired(), check_duplicate_category()])

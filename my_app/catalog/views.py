@@ -1,11 +1,13 @@
 from flask import request, jsonify, Blueprint, render_template, redirect, flash, \
                     url_for
-from my_app import app, db
+from my_app import app, db, ALLOWED_EXTENSIONS
 from my_app.catalog.models import Product, Category
 from functools import wraps
 from flask import flash
 from sqlalchemy.orm.util import join
 from my_app.catalog.models import ProductForm, CategoryForm
+import os
+from werkzeug import secure_filename
 
 catalog = Blueprint('catalog', __name__)
 
@@ -62,7 +64,14 @@ def create_product():
         name = request.form.get('name')
         price = request.form.get('price')
         category = Category.query.get_or_404(request.form.get('category'))
-        product = Product(name, price, category)
+        image = request.files['image']
+        filename = ''
+
+        if image and allow_files(image.filename):
+            filename = secure_filename(image.filename)
+            image.save(os.path.join(app.config['UPLOAD_FOLDER']), filename)
+
+        product = Product(name, price, category, filename)
         db.session.add(product)
         db.session.commit()
         flash('The product %s has been created' % name, 'success')
@@ -153,3 +162,6 @@ def product_admin_submit():
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
+
+def allow_files(filename):
+    return '.' in filename and filename.lower().rsplit('.', 1)[1] in ALLOWED_EXTENSIONS

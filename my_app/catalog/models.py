@@ -31,7 +31,7 @@ class Category(db.Model):
     def __repr__(self):
         return '<Category %d>' % self.id
 
-class ProductForm(Form):
+class ProductForm(FlaskForm):
     name = TextField('Name', validators=[InputRequired()])
     price = DecimalField('Price', validators=[
         InputRequired(), NumberRange(min=Decimal('0.0'))

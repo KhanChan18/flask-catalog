@@ -71,7 +71,7 @@ def create_product():
         return redirect(url_for('catalog.product', id=product.id))
 
     if form.errors:
-        flash(form.errors, 'danger')
+        flash("Some messages you type in need to be fixed.", 'danger')
 
     return render_template('product-create.html', form=form)
 

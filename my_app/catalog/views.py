@@ -5,6 +5,7 @@ from my_app.catalog.models import Product, Category
 from functools import wraps
 from flask import flash
 from sqlalchemy.orm.util import join
+from my_app.catalog.models import ProductForm
 
 catalog = Blueprint('catalog', __name__)
 

@@ -2,7 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
-from flask_restful import Api
+##from flask_restful import Api
 import os
 
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
@@ -15,7 +15,7 @@ app.config['UPLOAD_FOLDER'] = os.path.realpath('.') + '/my_app/static/uploads'
 app.secret_key = 'GNU is Not Unix'
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
-api = Api(app)
+##api = Api(app)
 
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)

@@ -1,4 +1,48 @@
 from my_app import db
+from decimal import Decimal
+from flask_wtf import FlaskForm
+from wtforms import TextField, DecimalField, SelectField, FileField
+from wtforms.validators import InputRequired, NumberRange, ValidationError
+from wtforms.widgets import html_params, Select, HTMLString
+
+def check_duplicate_category(case_sensitive=True):
+    def _check_duplicate(form, field):
+        if case_sensitive:
+            res = Category.query.filter(Category.name.like('%'+field.data+'%')).first()
+        else:
+            res = Category.query.filter(Category.name.ilike('%'+field.data+'%')).first()
+        if res:
+            raise ValidationError('Category named %s already exists' % field.data)
+    return _check_duplicate
+
+'''
+class CustomerCategoryInput(Select):
+    def __call__(self, field, **kwargs):
+        kwargs.setdefault('id', field.id)
+        html = []
+        for val, label, selected in field.iter_choices():
+            html.append(
+                '<input type="radio" %s> %s' % (
+                    html_params(name=field.name, value=val,checked=selected, **kwargs), label
+                    )
+                )
+        return HTMLString(' '.join(html))
+'''
+
+class CategoryField(SelectField):
+    '''widgets = CustomerCategoryInput()'''
+
+    def iter_choices(self):
+        categories = [(c.id, c.name) for c in Category.query.all()]
+        for value, label in categories:
+            yield (value, label, self.coerce(value) == self.data)
+
+    def pre_validate(self, form):
+        for v, _ in [(c.id, c.name) for c in Category.query.all()]:
+            if self.data == v:
+                break
+        else:
+            raise ValueError(self.gettext('Not a valid choice'))
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -6,13 +50,15 @@ class Product(db.Model):
     price = db.Column(db.Float)
     category = db.relationship('Category', backref=db.backref('products', lazy='dynamic'))
     catagory_id = db.Column(db.Integer, db.ForeignKey('category.id'))
+    image_path = db.Column(db.String(255))
     ##Add-on field
-    company = db.Column(db.String(100))
+    ## company = db.Column(db.String(100))
 
-    def __init__(self, name, price, category):
+    def __init__(self, name, price, category, image_path):
         self.name = name
         self.price = price
         self.category = category
+        self.image_path = image_path
 
     def __repr__(self):
         return '<Product %d>' % self.id
@@ -26,3 +72,16 @@ class Category(db.Model):
 
     def __repr__(self):
         return '<Category %d>' % self.id
+
+class NameForm(FlaskForm):
+    name = TextField('Name', validators=[InputRequired()])
+
+class ProductForm(NameForm):
+    price = DecimalField('Price', validators=[
+        InputRequired(), NumberRange(min=Decimal('0.0'))
+    ])
+    category = CategoryField('Category', validators=[InputRequired()], coerce=int)
+    image = FileField('Product Image')
+
+class CategoryForm(NameForm):
+    name = TextField('Name', validators=[InputRequired(), check_duplicate_category()])

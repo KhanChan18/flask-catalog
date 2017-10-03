@@ -1,22 +1,50 @@
-from flask import request, jsonify, Blueprint
-from my_app import app, db
+from flask import request, jsonify, Blueprint, render_template, redirect, flash, \
+                    url_for
+from my_app import app, db, ALLOWED_EXTENSIONS
 from my_app.catalog.models import Product, Category
+from functools import wraps
+from flask import flash
+from sqlalchemy.orm.util import join
+from my_app.catalog.models import ProductForm, CategoryForm
+import os
+from werkzeug import secure_filename
 
 catalog = Blueprint('catalog', __name__)
 
+def template_or_json(template=None):
+    """"Return a dict from your view and this will either
+    pass it to a template or render json. Use like:
+
+    @template_or_json('template.html')
+    """
+    def decorated(f):
+        @wraps(f)
+        def decorated_fn(*args, **kwargs):
+            ctx = f(*args, **kwargs)
+            if request.is_xhr or not template:
+                return jsonify(ctx)
+            else:
+                return render_template(template, **ctx)
+        return decorated_fn
+    return decorated
+
 @catalog.route('/')
 @catalog.route('/home')
+@template_or_json('home.html')
 def home():
-    return "Welcome to the Catalog Home."
+    products = Product.query.all()
+    return {'count': len(products)}
 
 @catalog.route('/product/<id>')
 def product(id):
     product = Product.query.get_or_404(id)
-    return 'Product - %s, $%s' % (product.name, product.price)
+    return render_template('product.html', product=product)
 
 @catalog.route('/products')
-def products():
-    products = Product.query.all()
+@catalog.route('/products/<int:page>')
+def products(page=1):
+    products = Product.query.paginate(page, 3)
+    '''
     res = {}
     for product in products:
         res[product.id] = {
@@ -25,25 +53,61 @@ def products():
             'category': product.category.name
         }
     return jsonify(res)
+    '''
+    return render_template('products.html', products=products)
 
-@catalog.route('/product-create', methods=['POST',])
+@catalog.route('/product-create', methods=['GET','POST'])
 def create_product():
-    name = request.form.get('name')
-    price = request.form.get('price')
-    categ_name = request.form.get('category')
-    category = Category.query.filter_by(name=categ_name).first()
+    form = ProductForm(request.form, csrf_enabled=False)
 
-    if not category:
-        category = Category(categ_name)
+    if form.validate_on_submit():
+        name = request.form.get('name')
+        price = request.form.get('price')
+        category = Category.query.get_or_404(request.form.get('category'))
+        image = request.files['image']
+        filename = ''
 
-    product = Product(name, price, category)
-    db.session.add(product)
-    db.session.commit()
-    return 'Product created.'
+        if image and allow_files(image.filename):
+            filename = secure_filename(image.filename)
+            image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+        product = Product(name, price, category, filename)
+        db.session.add(product)
+        db.session.commit()
+        flash('The product %s has been created' % name, 'success')
+        return redirect(url_for('catalog.product', id=product.id))
+
+    if form.errors:
+        flash("Some messages you type in need to be fixed.", 'danger')
+
+    return render_template('product-create.html', form=form)
+
+@catalog.route('/category-create', methods=['GET','POST'])
+def create_category():
+    form = CategoryForm(request.form, csrf_enabled=False)
+
+    if form.validate_on_submit():
+        name = request.form.get('name')
+        category = Category(name)
+        db.session.add(category)
+        db.session.commit()
+        flash('A new category named %s has been created' % name, 'success')
+        return redirect(url_for('catalog.category', id=category.id))
+
+    if form.errors:
+        flash("Some messages you type in need to be fixed.", 'danger')
+
+    return render_template('category-create.html', form=form)
+
+@catalog.route('/category/<id>')
+def category(id):
+    category = Category.query.get_or_404(id)
+    return render_template('category.html', category=category)
 
 @catalog.route('/categories')
 def categories():
     categories = Category.query.all()
+    '''
     res = {}
     for category in categories:
         res[category.id] = {
@@ -57,3 +121,47 @@ def categories():
                 'price': product.price
             }
     return jsonify(res)
+    '''
+    return render_template('categories.html', categories=categories)
+
+@catalog.route('/product-search')
+@catalog.route('/product-search/<int:page>')
+def product_search(page=1):
+    name = request.args.get('name')
+    price = request.args.get('price')
+    company = request.args.get('company')
+    category = request.args.get('category')
+    products = Product.query
+    if name:
+        products = products.filter(Product.name.like('%' + name + '%'))
+    if price:
+        products = products.filter(Product.price == price)
+    if company:
+        products = products.filter(Product.company.like('%' + company + '%'))
+    if category:
+        products = products.select_from(join(Product, Category)).filter(
+                Category.name.like('%' + category + '%'))
+    return render_template('products.html', products=products.paginate(page, 10))
+
+@catalog.route('/product-admin-submit', methods=['GET','POST'])
+def product_admin_submit():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        price = request.form.get('price')
+        categ_name = request.form.get('category')
+        category = Category.query.filter_by(name=categ_name).first()
+        if not category:
+            category = Category(categ_name)
+        product = Product(name, price, category)
+        db.session.add(product)
+        db.session.commit()
+        return "Product has been submitted by admin"
+    else:
+        return render_template('404.html')
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+def allow_files(filename):
+    return '.' in filename and filename.lower().rsplit('.', 1)[1] in ALLOWED_EXTENSIONS

@@ -13,6 +13,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////' + os.path.join(basedir, 'd
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['UPLOAD_FOLDER'] = os.path.realpath('.') + '/my_app/static/uploads'
 app.secret_key = 'GNU is Not Unix'
+app.debug = True
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 ##api = Api(app)
